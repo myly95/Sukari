@@ -217,6 +217,12 @@
           document.getElementById('register-message').innerText = 'Erreur inattendue.';
         }
       }
+if (data.Password === password) {
+  // Succès → Redirection avec l'ID dans l'URL
+  window.location.href = `dashboard.html?id=${encodeURIComponent(data.ID)}`;
+} else {
+  document.getElementById('login-message').innerText = 'Mot de passe incorrect.';
+}
 
       // Déconnexion
       window.logout = function () {
