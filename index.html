@@ -149,6 +149,7 @@
 
         const user = data[0]; // On prend le premier résultat
         if (user.Password === password) {
+          window.location.href = `https://myly95.github.io/Sukari/dashboard.html?id=${encodeURIComponent(user.ID)}`;
           document.getElementById('user-id-display').innerText = user.ID;
           document.getElementById('login-form').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
@@ -217,12 +218,6 @@
           document.getElementById('register-message').innerText = 'Erreur inattendue.';
         }
       }
-if (data.Password === password) {
-  // Succès → Redirection avec l'ID dans l'URL
-  window.location.href = `dashboard.html?id=${encodeURIComponent(data.ID)}`;
-} else {
-  document.getElementById('login-message').innerText = 'Mot de passe incorrect.';
-}
 
       // Déconnexion
       window.logout = function () {
