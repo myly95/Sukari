@@ -1,97 +1,163 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard Sukari</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      font-family: 'Orbitron', sans-serif;
-      background: radial-gradient(circle, #000000, #0f0f0f);
-      color: #00ffcc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: rgba(25, 25, 25, 0.95);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px #00ffcc;
-      width: 400px;
-      text-align: center;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 20px;
-      background: #00ffcc;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #00e6b8;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Dashboard Sukari</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+  body {
+    background: radial-gradient(circle at center, #000000, #0a0a0a);
+    color: #00ffcc;
+    font-family: 'Orbitron', monospace, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .container {
+    background: rgba(5, 20, 20, 0.85);
+    border-radius: 15px;
+    box-shadow:
+      0 0 10px #00ffc3,
+      0 0 30px #00ffc3,
+      0 0 60px #00ffcc;
+    width: 420px;
+    max-width: 95vw;
+    padding: 30px 40px;
+    text-align: center;
+    user-select: none;
+  }
+  h2 {
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #00ffd1;
+    text-shadow: 0 0 8px #00ffcc;
+  }
+  h3 {
+    font-weight: 600;
+    margin: 12px 0 24px;
+    font-size: 1.4rem;
+  }
+  .stat {
+    font-size: 1.15rem;
+    margin: 14px 0;
+    letter-spacing: 0.04em;
+  }
+  .label {
+    font-weight: 700;
+    color: #00e6b8;
+  }
+  button {
+    margin-top: 28px;
+    padding: 12px 30px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0a0a0a;
+    background: #00ffcc;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow:
+      0 0 10px #00ffc3,
+      0 0 20px #00ffc3;
+  }
+  button:hover {
+    background: #00e6b8;
+  }
+  .loading {
+    font-style: italic;
+    color: #009977;
+  }
+  .error {
+    color: #ff4444;
+    margin-top: 15px;
+  }
+</style>
 </head>
 <body>
 
-  <div class="container">
+  <div class="container" role="main" aria-label="Tableau de bord joueur">
     <h2>Dashboard Sukari</h2>
-    <h3>Bienvenue, <span id="player-id"></span></h3>
+    <h3>Bienvenue, <span id="player-id">...</span></h3>
 
-    <p>Total Sukas : <span id="total-sukas">Chargement...</span></p>
-    <p>Dernier Niveau : <span id="player-level">Chargement...</span></p>
-    <p>Dernière Date : <span id="last-date">Chargement...</span></p>
+    <div class="stat"><span class="label">Total Sukas :</span> <span id="total-sukas" class="loading">Chargement...</span></div>
+    <div class="stat"><span class="label">Dernier Niveau :</span> <span id="player-level" class="loading">Chargement...</span></div>
+    <div class="stat"><span class="label">Dernière Date :</span> <span id="last-date" class="loading">Chargement...</span></div>
 
-    <button onclick="logout()">Déconnexion</button>
+    <button type="button" id="logout-btn" aria-label="Se déconnecter">Déconnexion</button>
+
+    <div id="error-message" class="error" role="alert" aria-live="polite"></div>
   </div>
 
 <script>
-  // Initialiser Supabase
   const supabaseUrl = 'https://qytrcfwmsnlpdsdybcwo.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5dHJjZndtc25scGRzZHliY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NjE5ODIsImV4cCI6MjA2NzMzNzk4Mn0.VGLI9SmCg6bNDUAVu3tgZjoejtiQRlAk6ufClWD_4SM';
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  // Récupérer l'ID dans l'URL
   const urlParams = new URLSearchParams(window.location.search);
   const playerId = urlParams.get('id');
 
-  document.getElementById('player-id').innerText = playerId;
+  const playerIdSpan = document.getElementById('player-id');
+  const totalSukasSpan = document.getElementById('total-sukas');
+  const playerLevelSpan = document.getElementById('player-level');
+  const lastDateSpan = document.getElementById('last-date');
+  const errorMessageDiv = document.getElementById('error-message');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  if (!playerId) {
+    // Pas d'ID dans l'URL → retour à la page login
+    window.location.href = 'index.html';
+  } else {
+    playerIdSpan.textContent = playerId.toUpperCase();
+  }
 
   async function loadDashboard() {
-    // Exemple avec une table supabase 'performances' (à créer si tu veux tout faire dans supabase)
-    const { data, error } = await supabase
-      .from('performances') // Remplace par ta table si existante
-      .select('*')
-      .eq('EmployeeID', playerId)
-      .order('ShiftDate', { ascending: false });
+    errorMessageDiv.textContent = '';
+    try {
+      const { data, error } = await supabase
+        .from('sukas') // Nom exact de ta table Supabase
+        .select('*')
+        .eq('EmployeeID', playerId)
+        .order('ShiftDate', { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      document.getElementById('total-sukas').innerText = '0';
-      document.getElementById('player-level').innerText = 'Aucun';
-      document.getElementById('last-date').innerText = 'Aucune donnée';
-      return;
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        totalSukasSpan.textContent = '0';
+        playerLevelSpan.textContent = 'Aucun';
+        lastDateSpan.textContent = 'Aucune donnée';
+        return;
+      }
+
+      const totalSukas = data.reduce((acc, item) => acc + (item.Sukas || 0), 0);
+      const lastSession = data[0];
+
+      totalSukasSpan.textContent = totalSukas.toFixed(2);
+      playerLevelSpan.textContent = lastSession.Level || 'Inconnu';
+      lastDateSpan.textContent = lastSession.ShiftDate || 'Inconnue';
+    } catch (err) {
+      errorMessageDiv.textContent = 'Erreur lors du chargement des données.';
+      totalSukasSpan.textContent = '-';
+      playerLevelSpan.textContent = '-';
+      lastDateSpan.textContent = '-';
+      console.error(err);
     }
-
-    // Calcul du total Sukas
-    let totalSukas = data.reduce((sum, item) => sum + (item.Sukas || 0), 0);
-    let lastSession = data[0];
-
-    document.getElementById('total-sukas').innerText = totalSukas;
-    document.getElementById('player-level').innerText = lastSession.Level || 'Inconnu';
-    document.getElementById('last-date').innerText = lastSession.ShiftDate || 'Inconnue';
   }
 
-  function logout() {
+  logoutBtn.addEventListener('click', () => {
     window.location.href = 'index.html';
-  }
+  });
 
   loadDashboard();
 </script>
 
 </body>
 </html>
+
