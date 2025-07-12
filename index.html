@@ -101,7 +101,7 @@
     </table>
     <p><strong>Total Points:</strong> <span id="totalPoints">0</span></p>
   </div>
-  <button onclick="logout()">Déconnexion</button>
+  <button onclick="logout()">Logout</button>
 </div>
 <script>
   let uphChartInstance = null;
@@ -110,7 +110,7 @@
     uphChartInstance = new Chart(document.getElementById('uphChart'), {
       type: 'line',
       data: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        labels: ['4Weeks', 'Week27', 'Week28', 'Current'],
         datasets: [{
           label: 'UPH',
           data: data,
@@ -123,6 +123,7 @@
       options: { scales: { y: { beginAtZero: true } } }
     });
   }
+
   async function login() {
     const id = document.getElementById('login-id').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
@@ -145,22 +146,25 @@
       }
       document.getElementById('username').textContent = emp.ID;
       document.getElementById('emp-name').textContent = emp.ID;
-      document.getElementById('emp-suka').textContent = emp.Suka || '0';
       const [rosterRes, perfRes, attendanceRes] = await Promise.all([
         supabase.from('roster').select('*').eq('ID', id),
         supabase.from('performance').select('*').eq('ID', id),
         supabase.from(id).select('*')
       ]);
+
       if (rosterRes.data && rosterRes.data.length > 0) {
         const roster = rosterRes.data[0];
+        document.getElementById('emp-suka').textContent = roster.Suka || '0';
         document.getElementById('emp-mot').textContent = roster.MOT || '—';
         document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
-        if (roster.Date) {
-          const startDate = new Date(roster.Date);
+
+        if (roster['Hire Date']) {
+          const startDate = new Date(roster['Hire Date']);
           const now = new Date();
           let years = now.getFullYear() - startDate.getFullYear();
           let months = now.getMonth() - startDate.getMonth();
           let days = now.getDate() - startDate.getDate();
+
           if (days < 0) {
             months--;
             const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
@@ -170,17 +174,23 @@
             years--;
             months += 12;
           }
-          const tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
+
+          let tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
+          if (roster.Group) {
+            tenureStr += `, Group ${roster.Group}`;
+          }
           document.getElementById('emp-tenure').textContent = tenureStr;
         }
       }
+
       if (perfRes.data && perfRes.data.length > 0) {
         const p = perfRes.data[0];
-        renderChart([p.Week1, p.Week2, p.Week3, p.Week4]);
+        renderChart([p['4Weeks'], p.Week26, p.Week27, p.Current]);
         const percent = Math.round((p.Actual / p.WeeklyGoal) * 100);
         document.querySelector('.progress-fill').style.width = percent + '%';
         document.getElementById('progress-text').textContent = `${percent}% completed`;
       }
+
       const tbody = document.getElementById('attendanceTable');
       tbody.innerHTML = '';
       let total = 0;
@@ -205,6 +215,7 @@
       msg.textContent = 'Erreur serveur.';
     }
   }
+
   function logout() {
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('login-form').style.display = 'block';
