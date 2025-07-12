@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attendance - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #00ffe1;
+      font-family: 'Share Tech Mono', monospace;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      padding: 1rem 2rem;
+      background: #111;
+      border-bottom: 1px solid #00ffe1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header a {
+      color: #00ffe1;
+      text-decoration: none;
+      margin: 0 1rem;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .container {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+
+    th, td {
+      border: 1px solid #00ffe1;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: #111;
+    }
+
+    .note {
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div><strong>NeoDashboard //</strong> Attendance</div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="attendance.html">Attendance</a>
+      <a href="performance.html">Performance</a>
+      <a href="learning.html">Learning</a>
+      <a href="gaming.html">Gaming</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Attendance Overview</h1>
+    <h2>Total Penalty Points: <span id="totalPoints">0</span></h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTable">
+        <tr>
+          <td>2025-07-12</td>
+          <td style="color:orange">⚠ CO</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>2025-07-11</td>
+          <td style="color:orange">⚠ Late</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>2025-07-10</td>
+          <td style="color:red">✖ NCNS</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>2025-07-09</td>
+          <td style="color:lime">✔ Excused</td>
+          <td>0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="note">🛈 1 = Late · 2 = CO · 5 = NCNS · 0 = Excused</p>
+  </div>
+
+  <script>
+    // Données des présences
+    const attendanceData = [
+      { date: '2025-07-12', status: 'CO', points: 2 },
+      { date: '2025-07-11', status: 'Late', points: 1 },
+      { date: '2025-07-10', status: 'NCNS', points: 5 },
+      { date: '2025-07-09', status: 'Excused', points: 0 }
+    ];
+
+    // Calcul du total
+    const totalPoints = attendanceData.reduce((sum, entry) => sum + entry.points, 0);
+    document.getElementById("totalPoints").textContent = totalPoints;
+  </script>
+
+</body>
+</html>
