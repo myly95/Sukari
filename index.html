@@ -19,7 +19,6 @@
       background-color: #e7e7e0;
       color: #222;
     }
-
     .container {
       max-width: 600px;
       margin: 2rem auto;
@@ -29,7 +28,6 @@
       border-radius: 8px;
       box-shadow: 2px 2px 0 #000;
     }
-
     input, button {
       display: block;
       width: 100%;
@@ -38,32 +36,20 @@
       font-family: inherit;
       font-size: 1rem;
     }
-
-    .error {
-      color: red;
-      font-size: 0.9rem;
-    }
-
-    .success {
-      color: green;
-      font-size: 0.9rem;
-    }
-
+    .error { color: red; font-size: 0.9rem; }
+    .success { color: green; font-size: 0.9rem; }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 1rem;
     }
-
     th, td {
       border-bottom: 1px solid #000;
       padding: 0.5rem;
     }
-
     .status-CO { color: green; font-weight: bold; }
     .status-NCNS { color: red; font-weight: bold; }
     .status-Late { color: orange; font-weight: bold; }
-
     .progress-bar {
       width: 100%;
       background-color: #ccc;
@@ -72,7 +58,6 @@
       border-radius: 5px;
       overflow: hidden;
     }
-
     .progress-fill {
       height: 100%;
       background-color: #00b894;
@@ -81,25 +66,22 @@
   </style>
 </head>
 <body>
-
 <div class="container" id="login-form">
-  <h2>Account </h2>
+  <h2>Account</h2>
   <input type="text" id="login-id" placeholder="Employee ID" autocomplete="off">
   <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="off">
   <button onclick="login()">Login</button>
   <div id="login-message" class="error"></div>
 </div>
-
 <div class="container" id="dashboard" style="display:none;">
-  <h3>welcome, <span id="username"></span></h3>
+  <h3>Welcome, <span id="username"></span></h3>
   <div class="card">
     <p>Login: <span id="emp-name">---</span></p>
     <p>Tenure: <span id="emp-tenure">---</span></p>
     <p>MOT Day: <span id="emp-mot">---</span></p>
     <p>Primary Function: <span id="emp-primary">---</span></p>
-    <p>Suka:$ <span id="emp-suka">---</span></p>
+    <p>Suka: <span id="emp-suka">---</span></p>
   </div>
-
   <div>
     <h4>Current Performance</h4>
     <canvas id="uphChart"></canvas>
@@ -109,7 +91,6 @@
     </div>
     <p id="progress-text"></p>
   </div>
-
   <div>
     <h4>Attendance Records</h4>
     <table>
@@ -120,16 +101,16 @@
     </table>
     <p><strong>Total Points:</strong> <span id="totalPoints">0</span></p>
   </div>
-
-  <button onclick="logout()">Logout</button>
+  <button onclick="logout()">Déconnexion</button>
 </div>
-
 <script>
+  let uphChartInstance = null;
   function renderChart(data) {
-    new Chart(document.getElementById('uphChart'), {
+    if (uphChartInstance) uphChartInstance.destroy();
+    uphChartInstance = new Chart(document.getElementById('uphChart'), {
       type: 'line',
       data: {
-        labels: ['4Weeks', 'Week26', 'Week27', 'Current'],
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
         datasets: [{
           label: 'UPH',
           data: data,
@@ -142,95 +123,88 @@
       options: { scales: { y: { beginAtZero: true } } }
     });
   }
-
   async function login() {
     const id = document.getElementById('login-id').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
     const msg = document.getElementById('login-message');
-    msg.textContent = '';
-
+    msg.textContent = 'Chargement...';
     if (!id || !password) {
       msg.textContent = 'Champs requis';
       return;
     }
-
-    const { data, error } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
-    if (error || !data || data.length === 0) {
-      msg.textContent = 'Identifiant incorrect.';
-      return;
-    }
-
-    const emp = data[0];
-    if (emp.Password !== password) {
-      msg.textContent = 'Mot de passe incorrect.';
-      return;
-    }
-
-    document.getElementById('username').textContent = emp.ID;
-    document.getElementById('emp-name').textContent = emp.ID;
-    document.getElementById('emp-suka').textContent = emp.Suka || '0';
-
-    const { data: rosterData } = await supabase.from('roster').select('*').eq('ID', id);
-    if (rosterData && rosterData.length > 0) {
-      const roster = rosterData[0];
-      document.getElementById('emp-mot').textContent = roster['MOT Day'] || '—';
-      document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
-      document.getElementById('emp-tenure').textContent=roster['Tenure'] || '';
-      if (roster.Date) {
-        const startDate = new Date(roster.Date);
-        const now = new Date();
-
-        let years = now.getFullYear() - startDate.getFullYear();
-        let months = now.getMonth() - startDate.getMonth();
-        let days = now.getDate() - startDate.getDate();
-
-        if (days < 0) {
-          months--;
-          const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-          days += prevMonth.getDate();
-        }
-
-        if (months < 0) {
-          years--;
-          months += 12;
-        }
-
-        const tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
-        document.getElementById('emp-tenure').textContent = tenureStr;
+    try {
+      const { data: userData, error: userError } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
+      if (userError || !userData || userData.length === 0) {
+        msg.textContent = 'Identifiant incorrect.';
+        return;
       }
+      const emp = userData[0];
+      if (emp.Password !== password) {
+        msg.textContent = 'Mot de passe incorrect.';
+        return;
+      }
+      document.getElementById('username').textContent = emp.ID;
+      document.getElementById('emp-name').textContent = emp.ID;
+      document.getElementById('emp-suka').textContent = emp.Suka || '0';
+      const [rosterRes, perfRes, attendanceRes] = await Promise.all([
+        supabase.from('roster').select('*').eq('ID', id),
+        supabase.from('performance').select('*').eq('ID', id),
+        supabase.from(id).select('*')
+      ]);
+      if (rosterRes.data && rosterRes.data.length > 0) {
+        const roster = rosterRes.data[0];
+        document.getElementById('emp-mot').textContent = roster.MOT || '—';
+        document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
+        if (roster.Date) {
+          const startDate = new Date(roster.Date);
+          const now = new Date();
+          let years = now.getFullYear() - startDate.getFullYear();
+          let months = now.getMonth() - startDate.getMonth();
+          let days = now.getDate() - startDate.getDate();
+          if (days < 0) {
+            months--;
+            const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+            days += prevMonth.getDate();
+          }
+          if (months < 0) {
+            years--;
+            months += 12;
+          }
+          const tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
+          document.getElementById('emp-tenure').textContent = tenureStr;
+        }
+      }
+      if (perfRes.data && perfRes.data.length > 0) {
+        const p = perfRes.data[0];
+        renderChart([p.Week1, p.Week2, p.Week3, p.Week4]);
+        const percent = Math.round((p.Actual / p.WeeklyGoal) * 100);
+        document.querySelector('.progress-fill').style.width = percent + '%';
+        document.getElementById('progress-text').textContent = `${percent}% completed`;
+      }
+      const tbody = document.getElementById('attendanceTable');
+      tbody.innerHTML = '';
+      let total = 0;
+      if (attendanceRes.data && attendanceRes.data.length > 0) {
+        attendanceRes.data.forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${entry.Date}</td>
+            <td class="status-${entry.Reason}">${entry.Reason}</td>
+            <td>${entry.Points}</td>
+            <td>${entry["Roll Off Date"] || '—'}</td>`;
+          tbody.appendChild(row);
+          total += Number(entry.Points) || 0;
+        });
+      }
+      document.getElementById('totalPoints').textContent = total;
+      msg.textContent = '';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    } catch (e) {
+      console.error('Login error:', e);
+      msg.textContent = 'Erreur serveur.';
     }
-
-    const { data: perf } = await supabase.from('performance').select('*').eq('ID', emp.ID);
-    if (perf && perf.length > 0) {
-      const p = perf[0];
-      renderChart([p.Weeks, p.Week26, p.Week27, p.Current]);
-      const percent = Math.round((p.Actual / p.WeeklyGoal) * 100);
-      document.querySelector('.progress-fill').style.width = percent + '%';
-      document.getElementById('progress-text').textContent = `${percent}% completed`;
-    }
-
-    const { data: attendanceData } = await supabase.from(emp.ID).select('*');
-    const tbody = document.getElementById('attendanceTable');
-    tbody.innerHTML = '';
-    let total = 0;
-    if (attendanceData && attendanceData.length > 0) {
-      attendanceData.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${entry.Date}</td>
-          <td class="status-${entry.Reason}">${entry.Reason}</td>
-          <td>${entry.Points}</td>
-          <td>${entry["Roll Off Date"] || '—'}</td>`;
-        tbody.appendChild(row);
-        total += Number(entry.Points) || 0;
-      });
-    }
-    document.getElementById('totalPoints').textContent = total;
-
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
   }
-
   function logout() {
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('login-form').style.display = 'block';
@@ -241,6 +215,6 @@
     document.getElementById('totalPoints').textContent = '0';
   }
 </script>
-
 </body>
 </html>
+
