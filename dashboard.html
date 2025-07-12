@@ -55,7 +55,7 @@
 <body>
 
   <div class="top-bar">
-    <div><strong>Dashboard //</strong> Friday September 13</div>
+    <div><strong>Dashboard //</strong> <span id="user-id-display">Loading...</span></div>
     <nav>
       <a href="#">Home</a>
       <a href="https://myly95.github.io/Sukari/attendance.html" target="_blank" rel="noopener noreferrer">Attendance</a>
@@ -66,12 +66,10 @@
   </div>
 
   <div class="dashboard">
-    <div class="card">
+    <!-- Carte utilisateur dynamique -->
+    <div class="card" id="userCard">
       <h3>Card</h3>
-      <p>Name: Brian Mejia</p>
-      <p>Tenure: 1 year 3 months </p>
-      <p> MOT Day: Group A<p>
-      <p> Suka: $0 <p>
+      <p>Loading user data...</p>
     </div>
 
     <div class="card">
@@ -79,42 +77,101 @@
       <p>35.51m</p>
       <div class="chart-placeholder"></div>
     </div>
-
+    
     <div class="card">
-      <h3>Attedance Overview</h3>
-      <p>102.2k</p>
-      <div class="chart-placeholder"></div>
-    </div>
-
-    <div class="card">
-      <h3>Signals Over Time</h3>
-      <div class="chart-placeholder"></div>
-    </div>
-
-    <div class="card">
-      <h3>Insights (08)</h3>
-      <div class="chart-placeholder"></div>
-    </div>
-
-    <div class="card">
-      <h3>Threat Alert</h3>
-      <p>Increased Traffic with Endpoint Threat</p>
-      <button style="background:#00ffe1; color:#000;">Resolve</button>
-    </div>
-
-    <div class="card">
-      <h3>Sensors</h3>
-      <div class="chart-placeholder"></div>
-    </div>
-
-    <div class="card">
-      <h3>Activity Feed</h3>
-      <p>Insider_Threat // Lateral Movement // ↑ Traffic</p>
-      <p>3 mins ago</p>
-      <p>⋯</p>
+      <h3>Attendance Records</h3>
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="border-bottom: 1px solid #00ffe1;">Date</th>
+            <th style="border-bottom: 1px solid #00ffe1;">Status</th>
+            <th style="border-bottom: 1px solid #00ffe1;">Points</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTable">
+          <!-- data -->
+        </tbody>
+      </table>
     </div>
   </div>
 
+  <!-- Supabase Script -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseUrl = 'https://qytrcfwmsnlpdsdybcwo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5dHJjZndtc25scGRzZHliY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NjE5ODIsImV4cCI6MjA2NzMzNzk4Mn0.VGLI9SmCg6bNDUAVu3tgZjoejtiQRlAk6ufClWD_4SM';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    function getColor(status) {
+      switch (status) {
+        case 'CO': return 'orange';
+        case 'Late': return 'orange';
+        case 'NCNS': return 'red';
+        case 'Excused': return 'lime';
+        default: return '#00ffe1';
+      }
+    }
+
+    async function loadUserData() {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('id');
+      document.getElementById('user-id-display').textContent = userId || 'Unknown';
+
+      // 🔹 Charger les infos utilisateur
+      const { data: userData, error: userError } = await supabase
+        .from('Users') // ← nom de ta table
+        .select('*')
+        .eq('ID', userId)
+        .single();
+
+      if (userError || !userData) {
+        document.getElementById('userCard').innerHTML = '<p style="color:red;">Utilisateur introuvable.</p>';
+        return;
+      }
+
+      document.getElementById('userCard').innerHTML = `
+        <h3>Card</h3>
+        <p>Name: ${userData.Name || '—'}</p>
+        <p>Tenure: ${userData.Tenure || '—'}</p>
+        <p>MOT Day: ${userData.MOT_Day || '—'}</p>
+        <p>Primary Function: ${userData.Function || '—'}</p>
+        <p>Suka: $${userData.Suka || '0'}</p>
+      `;
+
+      // 🔹 Charger les records de présence
+      const { data: attendanceData, error: attendanceError } = await supabase
+        .from('Attendance') // ← nom de ta table attendance
+        .select('*')
+        .eq('UserID', userId)
+        .order('Date', { ascending: false });
+
+      if (attendanceError) {
+        console.error('Erreur attendance:', attendanceError.message);
+        return;
+      }
+
+      const tbody = document.getElementById('attendanceTable');
+      attendanceData.forEach(record => {
+        const row = document.createElement('tr');
+
+        const tdDate = document.createElement('td');
+        tdDate.textContent = record.Date;
+        row.appendChild(tdDate);
+
+        const tdStatus = document.createElement('td');
+        tdStatus.textContent = record.Status;
+        tdStatus.style.color = getColor(record.Status);
+        row.appendChild(tdStatus);
+
+        const tdPoints = document.createElement('td');
+        tdPoints.textContent = record.Points;
+        row.appendChild(tdPoints);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    loadUserData();
+  </script>
 </body>
 </html>
-
