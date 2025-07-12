@@ -1,232 +1,246 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Sukari Game – Login & Register</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <title>Employee Dashboard - Connexion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://qytrcfwmsnlpdsdybcwo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5dHJjZndtc25scGRzZHliY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NjE5ODIsImV4cCI6MjA2NzMzNzk4Mn0.VGLI9SmCg6bNDUAVu3tgZjoejtiQRlAk6ufClWD_4SM'
+    );
+  </script>
   <style>
     body {
-      font-family: 'Orbitron', sans-serif;
-      background: radial-gradient(circle, #000000, #0f0f0f);
-      color: #00ffcc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       margin: 0;
+      font-family: 'Share Tech Mono', monospace;
+      background-color: #e7e7e0;
+      color: #222;
     }
+
     .container {
-      background: rgba(25, 25, 25, 0.95);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px #00ffcc;
-      width: 350px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input, button {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #f6f6f1;
+      border: 2px solid #000;
       border-radius: 8px;
-      font-size: 16px;
-      color: #00ffcc;
-      background: #222;
-      border: 1px solid #00ffcc;
+      box-shadow: 2px 2px 0 #000;
     }
-    button {
-      background: #00ffcc;
-      color: #0f0f0f;
-      cursor: pointer;
-      transition: background 0.3s;
+
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-family: inherit;
+      font-size: 1rem;
     }
-    button:hover {
-      background: #00e6b8;
-    }
+
     .error {
-      color: #ff4444;
-      margin-top: 10px;
-      min-height: 18px;
+      color: red;
+      font-size: 0.9rem;
     }
+
     .success {
-      color: #44ff44;
-      margin-top: 10px;
-      min-height: 18px;
+      color: green;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid #000;
+      padding: 0.5rem;
+    }
+
+    .status-CO { color: green; font-weight: bold; }
+    .status-NCNS { color: red; font-weight: bold; }
+    .status-Late { color: orange; font-weight: bold; }
+
+    .progress-bar {
+      width: 100%;
+      background-color: #ccc;
+      height: 20px;
+      border: 1px solid #000;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #00b894;
+      width: 0%;
     }
   </style>
 </head>
 <body>
 
-  <div class="container" id="login-register-container">
-    <h2>Employee Dashboard</h2>
-    <button onclick="showLogin()">Connexion</button>
-    <button onclick="showRegister()">Create an Account</button>
+<div class="container" id="login-form">
+  <h2>Account </h2>
+  <input type="text" id="login-id" placeholder="Employee ID" autocomplete="off">
+  <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="off">
+  <button onclick="login()">Login</button>
+  <div id="login-message" class="error"></div>
+</div>
+
+<div class="container" id="dashboard" style="display:none;">
+  <h3>welcome, <span id="username"></span></h3>
+  <div class="card">
+    <p>Login: <span id="emp-name">---</span></p>
+    <p>Tenure: <span id="emp-tenure">---</span></p>
+    <p>MOT Day: <span id="emp-mot">---</span></p>
+    <p>Primary Function: <span id="emp-primary">---</span></p>
+    <p>Suka:$ <span id="emp-suka">---</span></p>
   </div>
 
-  <div class="container" id="login-form" style="display:none;">
-    <h3>Connexion</h3>
-    <input type="text" id="login-id" placeholder="Employee ID" autocomplete="off" />
-    <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="off" />
-    <button onclick="login()">Se connecter</button>
-    <div id="login-message" class="error"></div>
-    <button onclick="backToMenu()">Retour</button>
+  <div>
+    <h4>Current Performance</h4>
+    <canvas id="uphChart"></canvas>
+    <p>Weekly Units Goal</p>
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+    <p id="progress-text"></p>
   </div>
 
-  <div class="container" id="register-form" style="display:none;">
-    <h3>Créer / Mettre à jour un compte</h3>
-    <input type="text" id="register-id" placeholder="Employee ID" autocomplete="off" />
-    <input type="password" id="register-password" placeholder="Mot de passe" autocomplete="off" />
-    <button onclick="register()">Enregistrer</button>
-    <div id="register-message" class="error"></div>
-    <button onclick="backToMenu()">Retour</button>
+  <div>
+    <h4>Attendance Records</h4>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Status</th><th>Points</th><th>ROD</th></tr>
+      </thead>
+      <tbody id="attendanceTable"></tbody>
+    </table>
+    <p><strong>Total Points:</strong> <span id="totalPoints">0</span></p>
   </div>
 
-  <div class="container" id="dashboard" style="display:none;">
-    <h3>Bienvenue, <span id="user-id-display"></span></h3>
-    <p><strong>Vous êtes connecté.</strong></p>
-    <button onclick="logout()">Déconnexion</button>
-  </div>
+  <button onclick="logout()">Logout</button>
+</div>
 
-  <!-- SCRIPT FINAL -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialisation Supabase
-      const supabaseUrl = 'https://qytrcfwmsnlpdsdybcwo.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5dHJjZndtc25scGRzZHliY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NjE5ODIsImV4cCI6MjA2NzMzNzk4Mn0.VGLI9SmCg6bNDUAVu3tgZjoejtiQRlAk6ufClWD_4SM';
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-      // Afficher formulaire Connexion
-      window.showLogin = function () {
-        clearMessages();
-        document.getElementById('login-register-container').style.display = 'none';
-        document.getElementById('login-form').style.display = 'block';
-      }
-
-      // Afficher formulaire Enregistrement
-      window.showRegister = function () {
-        clearMessages();
-        document.getElementById('login-register-container').style.display = 'none';
-        document.getElementById('register-form').style.display = 'block';
-      }
-
-      // Retour au menu
-      window.backToMenu = function () {
-        clearMessages();
-        document.getElementById('login-register-container').style.display = 'block';
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('register-form').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'none';
-      }
-
-      // Nettoyer les messages d'erreur
-      function clearMessages() {
-        document.getElementById('login-message').innerText = '';
-        document.getElementById('register-message').innerText = '';
-      }
-
-      // Connexion
-      window.login = async function () {
-        clearMessages();
-        const id = document.getElementById('login-id').value.trim().toLowerCase();
-        const password = document.getElementById('login-password').value;
-
-        if (!id || !password) {
-          document.getElementById('login-message').innerText = 'Veuillez remplir tous les champs.';
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from('mot_de_passe')
-          .select('ID, Password')
-          .ilike('ID', id);
-
-        if (error || !data || data.length === 0) {
-          document.getElementById('login-message').innerText = 'Identifiant ou mot de passe incorrect.';
-          return;
-        }
-
-        const user = data[0]; // On prend le premier résultat
-        if (user.Password === password) {
-          window.location.href = `https://myly95.github.io/Sukari/dashboard.html?id=${encodeURIComponent(user.ID)}`;
-          document.getElementById('user-id-display').innerText = user.ID;
-          document.getElementById('login-form').style.display = 'none';
-          document.getElementById('dashboard').style.display = 'block';
-        } else {
-          document.getElementById('login-message').innerText = 'Mot de passe incorrect.';
-        }
-      }
-
-      // Enregistrement / Mise à jour
-      window.register = async function () {
-        clearMessages();
-        const id = document.getElementById('register-id').value.trim().toLowerCase();
-        const password = document.getElementById('register-password').value;
-
-        if (!id || !password) {
-          document.getElementById('register-message').innerText = 'Veuillez remplir tous les champs.';
-          return;
-        }
-
-        try {
-          const { data: existing, error: searchError } = await supabase
-            .from('mot_de_passe')
-            .select('ID')
-            .ilike('ID', id);
-
-          if (searchError) {
-            document.getElementById('register-message').innerText = 'Erreur serveur, veuillez réessayer.';
-            return;
-          }
-
-          if (existing.length > 0) {
-            const { error: updateError } = await supabase
-              .from('mot_de_passe')
-              .update({ Password: password })
-              .eq('ID', existing[0].ID);
-
-            if (updateError) {
-              document.getElementById('register-message').innerText = 'Erreur lors de la mise à jour.';
-              return;
-            }
-
-            document.getElementById('register-message').className = 'success';
-            document.getElementById('register-message').innerText = 'Mot de passe mis à jour avec succès.';
-          } else {
-            const { error: insertError } = await supabase
-              .from('mot_de_passe')
-              .insert([{ ID: id, Password: password }]);
-
-            if (insertError) {
-              document.getElementById('register-message').innerText = 'Erreur lors de la création du compte.';
-              return;
-            }
-
-            document.getElementById('register-message').className = 'success';
-            document.getElementById('register-message').innerText = 'Compte créé avec succès.';
-          }
-
-          setTimeout(() => {
-            backToMenu();
-            clearMessages();
-            document.getElementById('register-id').value = '';
-            document.getElementById('register-password').value = '';
-          }, 2000);
-        } catch (error) {
-          console.error('Erreur globale:', error);
-          document.getElementById('register-message').innerText = 'Erreur inattendue.';
-        }
-      }
-
-      // Déconnexion
-      window.logout = function () {
-        backToMenu();
-        document.getElementById('login-id').value = '';
-        document.getElementById('login-password').value = '';
-        document.getElementById('user-id-display').innerText = '';
-      }
+<script>
+  function renderChart(data) {
+    new Chart(document.getElementById('uphChart'), {
+      type: 'line',
+      data: {
+        labels: ['4Weeks', 'Week26', 'Week27', 'Current'],
+        datasets: [{
+          label: 'UPH',
+          data: data,
+          borderColor: '#222',
+          fill: true,
+          tension: 0.3,
+          backgroundColor: 'rgba(34,34,34,0.1)'
+        }]
+      },
+      options: { scales: { y: { beginAtZero: true } } }
     });
-  </script>
+  }
+
+  async function login() {
+    const id = document.getElementById('login-id').value.trim().toLowerCase();
+    const password = document.getElementById('login-password').value;
+    const msg = document.getElementById('login-message');
+    msg.textContent = '';
+
+    if (!id || !password) {
+      msg.textContent = 'Champs requis';
+      return;
+    }
+
+    const { data, error } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
+    if (error || !data || data.length === 0) {
+      msg.textContent = 'Identifiant incorrect.';
+      return;
+    }
+
+    const emp = data[0];
+    if (emp.Password !== password) {
+      msg.textContent = 'Mot de passe incorrect.';
+      return;
+    }
+
+    document.getElementById('username').textContent = emp.ID;
+    document.getElementById('emp-name').textContent = emp.ID;
+    document.getElementById('emp-suka').textContent = emp.Suka || '0';
+
+    const { data: rosterData } = await supabase.from('roster').select('*').eq('ID', id);
+    if (rosterData && rosterData.length > 0) {
+      const roster = rosterData[0];
+      document.getElementById('emp-mot').textContent = roster['MOT Day'] || '—';
+      document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
+      document.getElementById('emp-tenure').textContent=roster['Tenure'] || '';
+      if (roster.Date) {
+        const startDate = new Date(roster.Date);
+        const now = new Date();
+
+        let years = now.getFullYear() - startDate.getFullYear();
+        let months = now.getMonth() - startDate.getMonth();
+        let days = now.getDate() - startDate.getDate();
+
+        if (days < 0) {
+          months--;
+          const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+          days += prevMonth.getDate();
+        }
+
+        if (months < 0) {
+          years--;
+          months += 12;
+        }
+
+        const tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
+        document.getElementById('emp-tenure').textContent = tenureStr;
+      }
+    }
+
+    const { data: perf } = await supabase.from('performance').select('*').eq('ID', emp.ID);
+    if (perf && perf.length > 0) {
+      const p = perf[0];
+      renderChart([p.Weeks, p.Week26, p.Week27, p.Current]);
+      const percent = Math.round((p.Actual / p.WeeklyGoal) * 100);
+      document.querySelector('.progress-fill').style.width = percent + '%';
+      document.getElementById('progress-text').textContent = `${percent}% completed`;
+    }
+
+    const { data: attendanceData } = await supabase.from(emp.ID).select('*');
+    const tbody = document.getElementById('attendanceTable');
+    tbody.innerHTML = '';
+    let total = 0;
+    if (attendanceData && attendanceData.length > 0) {
+      attendanceData.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.Date}</td>
+          <td class="status-${entry.Reason}">${entry.Reason}</td>
+          <td>${entry.Points}</td>
+          <td>${entry["Roll Off Date"] || '—'}</td>`;
+        tbody.appendChild(row);
+        total += Number(entry.Points) || 0;
+      });
+    }
+    document.getElementById('totalPoints').textContent = total;
+
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+
+  function logout() {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('login-id').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('attendanceTable').innerHTML = '';
+    document.querySelector('.progress-fill').style.width = '0%';
+    document.getElementById('totalPoints').textContent = '0';
+  }
+</script>
+
 </body>
 </html>
