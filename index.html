@@ -154,9 +154,10 @@
 
       if (rosterRes.data && rosterRes.data.length > 0) {
         const roster = rosterRes.data[0];
-        document.getElementById('emp-suka').textContent = roster.Suka || '0';
-        document.getElementById('emp-mot').textContent = roster.MOT || '—';
+        document.getElementById('emp-suka').textContent = roster['Suka'] || '0';
+        document.getElementById('emp-mot').textContent = roster['MOT Day'] || '—';
         document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
+        document.getElementById('emp-tenure').textContent= roster['Tenure'] || '-';
 
         if (roster['Hire Date']) {
           const startDate = new Date(roster['Hire Date']);
