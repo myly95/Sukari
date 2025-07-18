@@ -1,17 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Employee Dashboard - Connexion</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
-  <script>
-    const supabase = window.supabase.createClient(
-      'https://qytrcfwmsnlpdsdybcwo.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5dHJjZndtc25scGRzZHliY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NjE5ODIsImV4cCI6MjA2NzMzNzk4Mn0.VGLI9SmCg6bNDUAVu3tgZjoejtiQRlAk6ufClWD_4SM'
-    );
-  </script>
   <style>
     body {
       margin: 0;
@@ -20,7 +14,7 @@
       color: #222;
     }
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: 2rem auto;
       padding: 2rem;
       background: #f6f6f1;
@@ -36,6 +30,9 @@
       font-family: inherit;
       font-size: 1rem;
     }
+    button {
+      cursor: pointer;
+    }
     .error { color: red; font-size: 0.9rem; }
     .success { color: green; font-size: 0.9rem; }
     table {
@@ -46,187 +43,445 @@
     th, td {
       border-bottom: 1px solid #000;
       padding: 0.5rem;
+      text-align: left;
     }
     .status-CO { color: green; font-weight: bold; }
     .status-NCNS { color: red; font-weight: bold; }
     .status-Late { color: orange; font-weight: bold; }
-    .progress-bar {
+    .progress-bar-container {
       width: 100%;
       background-color: #ccc;
-      height: 20px;
+      height: 25px;
       border: 1px solid #000;
       border-radius: 5px;
       overflow: hidden;
+      margin: 0.3rem 0 1rem 0;
+      font-weight: bold;
+      color: #222;
+      display: center;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      user-select: none;
     }
     .progress-fill {
       height: 100%;
       background-color: #00b894;
       width: 0%;
     }
+.progress-bar-container {
+  width:100%;
+  transition: width 1s ease;
+  background-color: #ccc;
+  height: 30px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-left: 0px; /* Le margin doit être ici */
+}
+    /* Top bar contenant onglets + logout */
+    #topBar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 0.3rem;
+      margin-bottom: 1rem;
+    }
+
+    #tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: nowrap;
+      flex-grow: 1;
+    }
+
+    #tabs button {
+      background: #ddd;
+      border: 1px solid #000;
+      border-bottom: none;
+      padding: 0.4rem 1rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.3s ease;
+      white-space: nowrap;
+    }
+
+    #tabs button:hover:not(.active) {
+      background: #bbb;
+    }
+
+    #tabs button.active {
+      background: #f6f6f1;
+      font-weight: bold;
+      cursor: default;
+      border-bottom: 2px solid #f6f6f1;
+    }
+
+    #logoutBtn {
+      background: #ff4757;
+      color: white;
+      border: 1px solid #c0392b;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      min-width: 75px;
+      margin-left: 1rem;
+      white-space: nowrap;
+    }
+
+    #logoutBtn:hover {
+      background: #e84118;
+    }
+
+    .store-item {
+      background: #ddd;
+      border: 1px solid #999;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .store-item h4 {
+      margin: 0 0 0.3rem 0;
+    }
+    .store-item p {
+      margin: 0;
+    }
   </style>
 </head>
 <body>
-<div class="container" id="login-form">
-  <h2>Account</h2>
-  <input type="text" id="login-id" placeholder="Employee ID" autocomplete="off">
-  <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="off">
-  <button onclick="login()">Login</button>
-  <div id="login-message" class="error"></div>
-</div>
-<div class="container" id="dashboard" style="display:none;">
-  <h3>Welcome, <span id="username"></span></h3>
-  <div class="card">
-    <p>Login: <span id="emp-name">---</span></p>
-    <p>Tenure: <span id="emp-tenure">---</span></p>
-    <p>MOT Day: <span id="emp-mot">---</span></p>
-    <p>Primary Function: <span id="emp-primary">---</span></p>
-    <p>Suka: <span id="emp-suka">---</span></p>
+  <div class="container" id="login-form">
+    <h2>Account</h2>
+    <input type="text" id="login-id" placeholder="Employee ID" autocomplete="off" />
+    <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="off" />
+    <button onclick="login()">Login</button>
+    <div id="login-message" class="error"></div>
   </div>
-  <div>
-    <h4>Current Performance</h4>
-    <canvas id="uphChart"></canvas>
-    <p>Weekly Units Goal</p>
-    <div class="progress-bar">
-      <div class="progress-fill"></div>
+
+  <div class="container" id="dashboard" style="display:none;">
+    <h3>Welcome, <span id="username"></span></h3>
+
+    <div id="topBar">
+      <div id="tabs">
+        <button id="btnDashboard" class="active" onclick="showTab('dashboardTab')">Dashboard</button>
+        <button id="btnPerformance" onclick="showTab('performanceTab')">Performance</button>
+        <button id="btnThriving" onclick="showTab('thrivingTab')">Thriving</button>
+        <button id="btnStore" onclick="showTab('storeTab')">Store</button>
+      </div>
+      <button id="logoutBtn" onclick="logout()">Logout</button>
     </div>
-    <p id="progress-text"></p>
-  </div>
-  <div>
-    <h4>Attendance Records</h4>
-    <table>
-      <thead>
-        <tr><th>Date</th><th>Status</th><th>Points</th><th>ROD</th></tr>
-      </thead>
-      <tbody id="attendanceTable"></tbody>
-    </table>
-    <p><strong>Total Points:</strong> <span id="totalPoints">0</span></p>
-  </div>
-  <button onclick="logout()">Logout</button>
-</div>
-<script>
-  let uphChartInstance = null;
-  function renderChart(data) {
-    if (uphChartInstance) uphChartInstance.destroy();
-    uphChartInstance = new Chart(document.getElementById('uphChart'), {
-      type: 'line',
-      data: {
-        labels: ['4Weeks', 'Week27', 'Week28', 'Current'],
-        datasets: [{
-          label: 'UPH',
-          data: data,
-          borderColor: '#222',
-          fill: true,
-          tension: 0.3,
-          backgroundColor: 'rgba(34,34,34,0.1)'
-        }]
-      },
-      options: { scales: { y: { beginAtZero: true } } }
-    });
-  }
 
-  async function login() {
-    const id = document.getElementById('login-id').value.trim().toLowerCase();
-    const password = document.getElementById('login-password').value;
-    const msg = document.getElementById('login-message');
-    msg.textContent = 'Chargement...';
-    if (!id || !password) {
-      msg.textContent = 'Champs requis';
-      return;
+    <div id="dashboardTab">
+      <div class="card">
+        <p>Login: <span id="emp-name">---</span></p>
+        <p>Tenure: <span id="emp-tenure">---</span></p>
+        <p>MOT Day: <span id="emp-mot">---</span></p>
+        <p>Primary Function: <span id="emp-primary">---</span></p>
+        <p>Thrive Coin: $ <span id="emp-suka">---</span></p>
+      </div>
+      <div>
+        <h4>Attendance Records</h4>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Status</th><th>Points</th><th>ROD</th></tr>
+          </thead>
+          <tbody id="attendanceTable"></tbody>
+        </table>
+        <p><strong>Total Points:</strong> <span id="totalPoints">0</span></p>
+      </div>
+    </div>
+
+    <div id="performanceTab" style="display:none;">
+      <h4>Performance Warnings</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Type de warning</th>
+            <th>Niveau</th>
+            <th>Date</th>
+            <th>Validité</th>
+            <th>Expiration</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="performanceTableBody"></tbody>
+      </table>
+      <h3>Guidelines SOP</h3>
+      <p>Seek to Understand Verbal: no timeline<p>	
+      <p>Corrective Action Verbal: 30 days	<p>
+      <p> Corrective Action Written Warning: 6 months <p>	
+      <p> Corrective Action Final Warning: 6 months	<p>
+      <canvas id="pointsChart" style="max-width:100%;"></canvas>
+    </div>
+
+    <div id="thrivingTab" style="display:none;">
+      <h4>Thriving Performance</h4>
+      <p>Weekly Goal: <span id="weeklyGoalDisplay">0</span></p>
+      <p>Actual: <span id="actualDisplay">0</span></p>
+      <p>TOT (minutes): <span id="totDisplay">0</span></p>
+      <p>Mispicks Units: <span id="mispicksDisplay">0</span></p>
+
+      <div>
+        <p>Performance Progress:</p>
+        <div class="progress-bar-container" aria-label="Performance progress bar">
+          <div class="progress-fill" id="performanceProgressBar">0%</div>
+        </div>
+
+        <p>Mispicks Percentage:</p>
+        <div class="progress-bar-container" aria-label="Mispicks percentage bar">
+          <div class="progress-fill" id="mispicksProgressBar" style="background-color:#e17055;">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="storeTab" style="display:none;">
+      <h4>Store Items</h4>
+      <p> Contact Manager for Purchase <p>
+      <div class="store-item">
+        <h4>$5 Canteen Money</h4>
+        <p> Available: 5 <p>
+        <p>Price: 10 Thrive Coins</p>
+      </div>
+      <div class="store-item">
+        <h4>Donation Items</h4>
+        <p> Available: 6 <p>
+        <p>Price: 8 Thrive Coins per Item</p>
+      </div>
+      <div class="store-item">
+        <h4>Profile Avatar</h4>
+        <p> Available: 0 <p>
+        <p>Price: 25 Thrive Coins</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://qytrcfwmsnlpdsdybcwo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5dHJjZndtc25scGRzZHliY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NjE5ODIsImV4cCI6MjA2NzMzNzk4Mn0.VGLI9SmCg6bNDUAVu3tgZjoejtiQRlAk6ufClWD_4SM'
+    );
+
+    let pointsChart = null;
+
+    function showTab(tabId) {
+      const tabs = ['dashboardTab', 'performanceTab', 'thrivingTab', 'storeTab'];
+      tabs.forEach(id => {
+        document.getElementById(id).style.display = (id === tabId) ? 'block' : 'none';
+      });
+      document.getElementById('btnDashboard').classList.toggle('active', tabId === 'dashboardTab');
+      document.getElementById('btnPerformance').classList.toggle('active', tabId === 'performanceTab');
+      document.getElementById('btnThriving').classList.toggle('active', tabId === 'thrivingTab');
+      document.getElementById('btnStore').classList.toggle('active', tabId === 'storeTab');
     }
-    try {
-      const { data: userData, error: userError } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
-      if (userError || !userData || userData.length === 0) {
-        msg.textContent = 'Identifiant incorrect.';
+
+    async function login() {
+      const idInput = document.getElementById('login-id');
+      const pwdInput = document.getElementById('login-password');
+      const msg = document.getElementById('login-message');
+
+      const id = idInput.value.trim().toLowerCase();
+      const password = pwdInput.value;
+
+      if (!id || !password) {
+        msg.textContent = 'Veuillez remplir tous les champs.';
         return;
       }
-      const emp = userData[0];
-      if (emp.Password !== password) {
-        msg.textContent = 'Mot de passe incorrect.';
-        return;
-      }
-      document.getElementById('username').textContent = emp.ID;
-      document.getElementById('emp-name').textContent = emp.ID;
-      const [rosterRes, perfRes, attendanceRes] = await Promise.all([
-        supabase.from('roster').select('*').eq('ID', id),
-        supabase.from('performance').select('*').eq('ID', id),
-        supabase.from(id).select('*')
-      ]);
 
-      if (rosterRes.data && rosterRes.data.length > 0) {
-        const roster = rosterRes.data[0];
-        document.getElementById('emp-suka').textContent = roster['Suka'] || '0';
-        document.getElementById('emp-mot').textContent = roster['MOT Day'] || '—';
-        document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
-        document.getElementById('emp-tenure').textContent= roster['Tenure'] || '-';
+      msg.textContent = 'Connexion en cours...';
 
-        if (roster['Hire Date']) {
-          const startDate = new Date(roster['Hire Date']);
-          const now = new Date();
-          let years = now.getFullYear() - startDate.getFullYear();
-          let months = now.getMonth() - startDate.getMonth();
-          let days = now.getDate() - startDate.getDate();
+      try {
+        // Vérifier mot de passe
+        const { data: userData, error: userError } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
 
-          if (days < 0) {
-            months--;
-            const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-            days += prevMonth.getDate();
-          }
-          if (months < 0) {
-            years--;
-            months += 12;
-          }
-
-          let tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
-          if (roster.Group) {
-            tenureStr += `, Group ${roster.Group}`;
-          }
-          document.getElementById('emp-tenure').textContent = tenureStr;
+        if (userError || !userData || userData.length === 0) {
+          msg.textContent = 'Identifiant incorrect.';
+          return;
         }
-      }
 
-      if (perfRes.data && perfRes.data.length > 0) {
-        const p = perfRes.data[0];
-        renderChart([p['4Weeks'], p.Week26, p.Week27, p.Current]);
-        const percent = Math.round((p.Actual / p.WeeklyGoal) * 100);
-        document.querySelector('.progress-fill').style.width = percent + '%';
-        document.getElementById('progress-text').textContent = `${percent}% completed`;
-      }
+        const emp = userData[0];
+        if (emp.Password !== password) {
+          msg.textContent = 'Mot de passe incorrect.';
+          return;
+        }
 
-      const tbody = document.getElementById('attendanceTable');
-      tbody.innerHTML = '';
-      let total = 0;
-      if (attendanceRes.data && attendanceRes.data.length > 0) {
-        attendanceRes.data.forEach(entry => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${entry.Date}</td>
-            <td class="status-${entry.Reason}">${entry.Reason}</td>
-            <td>${entry.Points}</td>
-            <td>${entry["Roll Off Date"] || '—'}</td>`;
-          tbody.appendChild(row);
-          total += Number(entry.Points) || 0;
-        });
+        document.getElementById('username').textContent = emp.ID;
+        document.getElementById('emp-name').textContent = emp.ID;
+        msg.textContent = '';
+
+        // Charger roster
+        const { data: rosterData, error: rosterError } = await supabase.from('roster').select('*').eq('ID', id);
+        if (rosterError || !rosterData || rosterData.length === 0) {
+          document.getElementById('emp-suka').textContent = '0';
+          document.getElementById('emp-mot').textContent = '—';
+          document.getElementById('emp-primary').textContent = '—';
+          document.getElementById('emp-tenure').textContent = '-';
+        } else {
+          const roster = rosterData[0];
+          document.getElementById('emp-suka').textContent = roster['Suka'] || '0';
+          document.getElementById('emp-mot').textContent = roster['MOT Day'] || '—';
+          document.getElementById('emp-primary').textContent = roster['Primary Function'] || '—';
+
+          if (roster['Hire Date']) {
+            const startDate = new Date(roster['Hire Date']);
+            const now = new Date();
+            let years = now.getFullYear() - startDate.getFullYear();
+            let months = now.getMonth() - startDate.getMonth();
+            let days = now.getDate() - startDate.getDate();
+
+            if (days < 0) {
+              months--;
+              const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+              days += prevMonth.getDate();
+            }
+            if (months < 0) {
+              years--;
+              months += 12;
+            }
+
+            let tenureStr = `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}, ${days} day${days !== 1 ? 's' : ''}`;
+            if (roster.Group) {
+              tenureStr += `, Group ${roster.Group}`;
+            }
+            document.getElementById('emp-tenure').textContent = tenureStr;
+          } else {
+            document.getElementById('emp-tenure').textContent = '-';
+          }
+        }
+
+        // Charger attendance (table nommée id)
+        const { data: attendanceData, error: attendanceError } = await supabase.from(id).select('*');
+        const tbody = document.getElementById('attendanceTable');
+        tbody.innerHTML = '';
+        let totalPoints = 0;
+
+        if (attendanceError) {
+          tbody.innerHTML = `<tr><td colspan="4">Erreur chargement attendance.</td></tr>`;
+        } else if (attendanceData && attendanceData.length > 0) {
+          attendanceData.forEach(entry => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${entry.Date || ''}</td>
+              <td class="status-${entry.Reason || ''}">${entry.Reason || ''}</td>
+              <td>${entry.Points || ''}</td>
+              <td>${entry["Roll Off Date"] || '—'}</td>`;
+            tbody.appendChild(row);
+            totalPoints += Number(entry.Points) || 0;
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4">Aucune donnée d'attendance.</td></tr>`;
+        }
+        document.getElementById('totalPoints').textContent = totalPoints;
+
+        // Charger performance globale (table performance)
+        const { data: perfGlobalData, error: perfGlobalError } = await supabase.from('performance').select('*').eq('ID', id);
+
+        if (perfGlobalError) {
+          alert('Erreur chargement performance globale.');
+        }
+        const perfGlobal = perfGlobalData && perfGlobalData.length > 0 ? perfGlobalData[0] : null;
+
+        // Charger warnings performance (table id_performance)
+        const perfTableName = `${id}_performance`;
+        const { data: perfUserData, error: perfUserError } = await supabase.from(perfTableName).select('*');
+
+        const perfTbody = document.getElementById('performanceTableBody');
+        perfTbody.innerHTML = '';
+
+        if (perfUserError || !perfUserData) {
+          perfTbody.innerHTML = `<tr><td colspan="6">Erreur chargement warnings performance.</td></tr>`;
+        } else if (perfUserData.length === 0) {
+          perfTbody.innerHTML = `<tr><td colspan="6">Aucun avertissement de performance.</td></tr>`;
+        } else {
+          perfUserData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row['Type de warning'] || ''}</td>
+              <td>${row['Niveau'] || ''}</td>
+              <td>${row['Date'] || ''}</td>
+              <td>${row['Validité'] || ''}</td>
+              <td>${row['Expiration'] || ''}</td>
+              <td>${row['Statut'] || ''}</td>
+            `;
+            perfTbody.appendChild(tr);
+          });
+        }
+
+        // Mettre à jour onglet Thriving avec données globales
+        updateThriving(perfGlobal);
+
+        // Afficher dashboard et cacher login
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        showTab('dashboardTab');
+
+      } catch (e) {
+        console.error('Erreur login:', e);
+        msg.textContent = 'Erreur serveur.';
       }
-      document.getElementById('totalPoints').textContent = total;
-      msg.textContent = '';
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-    } catch (e) {
-      console.error('Login error:', e);
-      msg.textContent = 'Erreur serveur.';
     }
-  }
 
-  function logout() {
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('login-form').style.display = 'block';
-    document.getElementById('login-id').value = '';
-    document.getElementById('login-password').value = '';
-    document.getElementById('attendanceTable').innerHTML = '';
-    document.querySelector('.progress-fill').style.width = '0%';
-    document.getElementById('totalPoints').textContent = '0';
-  }
-</script>
+    function updateThriving(data) {
+      if (!data) {
+        document.getElementById('weeklyGoalDisplay').textContent = '0';
+        document.getElementById('actualDisplay').textContent = '0';
+        document.getElementById('mispicksDisplay').textContent = '0';
+        document.getElementById('totDisplay').textContent = '0';
+        updateProgressBar('performanceProgressBar', 0);
+        updateProgressBar('mispicksProgressBar', 0, '#e17055');
+        return;
+      }
+
+      const weeklyGoal = Number(data['WeeklyGoal'] || 0);
+      const actual = Number(data['Actual'] || 0);
+      const mispicks = Number(data['Mispicks Units'] || 0);
+      const tot = Number(data['TOT'] || 0);
+
+      document.getElementById('weeklyGoalDisplay').textContent = weeklyGoal;
+      document.getElementById('actualDisplay').textContent = actual;
+      document.getElementById('mispicksDisplay').textContent = mispicks;
+      document.getElementById('totDisplay').textContent = tot;
+
+      const perfPercent = weeklyGoal > 0 ? Math.min(100, Math.round((actual / weeklyGoal) * 100)) : 0;
+      const mispicksPercent = actual > 0 ? Math.min(100, Math.round((mispicks / actual) * 100)) : 0;
+
+      updateProgressBar('performanceProgressBar', perfPercent);
+      updateProgressBar('mispicksProgressBar', mispicksPercent, '#e17055');
+    }
+
+    function updateProgressBar(barId, percent, color = '#00b894') {
+      const bar = document.getElementById(barId);
+      bar.style.width = percent + '%';
+      bar.textContent = percent + '%';
+      bar.style.backgroundColor = color;
+      bar.style.color = percent > 70 ? '#fff' : '#222';
+    }
+
+    function logout() {
+      // Remettre tout à zéro, afficher login et cacher dashboard
+      document.getElementById('login-id').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-message').textContent = '';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('login-form').style.display = 'block';
+
+      // Nettoyer les données affichées
+      document.getElementById('username').textContent = '';
+      document.getElementById('emp-name').textContent = '';
+      document.getElementById('emp-suka').textContent = '';
+      document.getElementById('emp-mot').textContent = '';
+      document.getElementById('emp-primary').textContent = '';
+      document.getElementById('emp-tenure').textContent = '';
+      document.getElementById('attendanceTable').innerHTML = '';
+      document.getElementById('performanceTableBody').innerHTML = '';
+      updateThriving(null);
+      showTab('dashboardTab');
+    }
+  </script>
 </body>
 </html>
 
