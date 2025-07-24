@@ -201,10 +201,10 @@
       <table>
         <thead>
           <tr>
-            <th>Type de warning</th>
-            <th>Niveau</th>
+            <th>Type of warning</th>
+            <th>Level</th>
             <th>Date</th>
-            <th>Validité</th>
+            <th>Validity</th>
             <th>Expiration</th>
             <th>Statut</th>
           </tr>
@@ -299,13 +299,13 @@
         const { data: userData, error: userError } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
 
         if (userError || !userData || userData.length === 0) {
-          msg.textContent = 'Identifiant incorrect.';
+          msg.textContent = 'ID incorrect.';
           return;
         }
 
         const emp = userData[0];
         if (emp.Password !== password) {
-          msg.textContent = 'Mot de passe incorrect.';
+          msg.textContent = 'Incorrect Password.';
           return;
         }
 
