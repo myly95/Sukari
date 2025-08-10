@@ -238,6 +238,23 @@
           <div class="progress-fill" id="mispicksProgressBar" style="background-color:#e17055;">0%</div>
         </div>
       </div>
+      
+      <hr />
+<h4>Transaction History</h4>
+<table>
+  <thead>
+    <tr>
+      <th>Week</th>
+      <th>Completion</th> 
+      <th>Description</th>
+      <th>Amount</th>
+    </tr>
+  </thead>
+  <tbody id="transactionsTable">
+  </tbody>
+</table>
+
+      
     </div>
 
     <div id="storeTab" style="display:none;">
@@ -278,6 +295,8 @@
       document.getElementById('btnPerformance').classList.toggle('active', tabId === 'performanceTab');
       document.getElementById('btnThriving').classList.toggle('active', tabId === 'thrivingTab');
       document.getElementById('btnStore').classList.toggle('active', tabId === 'storeTab');
+     
+//
     }
 
     async function login() {
@@ -293,7 +312,7 @@
         return;
       }
 
-      msg.textContent = 'Connexion en cours...';
+      msg.textContent = 'Connecting...';
 
       try {
         // Vérifier mot de passe
@@ -303,7 +322,6 @@
           msg.textContent = 'ID incorrect.';
           return;
         }
-
         const emp = userData[0];
         if (emp.Password !== password) {
           msg.textContent = 'Incorrect Password.';
@@ -382,7 +400,7 @@
         const { data: perfGlobalData, error: perfGlobalError } = await supabase.from('performance').select('*').eq('ID', id);
 
         if (perfGlobalError) {
-          alert('Erreur chargement performance globale.');
+          alert('Writting Warnings have not yet bee uploaded.');
         }
         const perfGlobal = perfGlobalData && perfGlobalData.length > 0 ? perfGlobalData[0] : null;
 
@@ -394,9 +412,9 @@
         perfTbody.innerHTML = '';
 
         if (perfUserError || !perfUserData) {
-          perfTbody.innerHTML = `<tr><td colspan="6">Erreur chargement warnings performance.</td></tr>`;
+          perfTbody.innerHTML = `<tr><td colspan="6">Error in uploading warnings performance.</td></tr>`;
         } else if (perfUserData.length === 0) {
-          perfTbody.innerHTML = `<tr><td colspan="6">Aucun avertissement de performance.</td></tr>`;
+          perfTbody.innerHTML = `<tr><td colspan="6">No performance writting warnings.</td></tr>`;
         } else {
           perfUserData.forEach(row => {
             const tr = document.createElement('tr');
@@ -419,10 +437,12 @@
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         showTab('dashboardTab');
+        // Après updateThriving(perfGlobal);
+        await loadTransactions(id);
 
       } catch (e) {
-        console.error('Erreur login:', e);
-        msg.textContent = 'Erreur serveur.';
+        console.error('Error login:', e);
+        msg.textContent = 'Error serveur.';
       }
     }
 
@@ -434,6 +454,8 @@
         document.getElementById('totDisplay').textContent = '0';
         updateProgressBar('performanceProgressBar', 0);
         updateProgressBar('mispicksProgressBar', 0, '#e17055');
+     
+
         return;
       }
 
@@ -453,6 +475,40 @@
       updateProgressBar('performanceProgressBar', perfPercent);
       updateProgressBar('mispicksProgressBar', mispicksPercent, '#e17055');
     }
+    async function loadTransactions(id) {
+  const table = document.getElementById('transactionsTable');
+  table.innerHTML = '<tr><td colspan="3">Chargement...</td></tr>';
+
+  try {
+    const { data, error } = await supabase.from('transactions').select('*').eq('ID', id).order('Date', { ascending: false });
+
+    if (error) {
+      table.innerHTML = `<tr><td colspan="3">Erreur chargement transactions.</td></tr>`;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      table.innerHTML = `<tr><td colspan="3">Aucune transaction trouvée.</td></tr>`;
+      return;
+    }
+
+    table.innerHTML = '';
+    data.forEach(tx => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${tx.Date || ''}</td>
+        <td>${tx.Type || ''}</td>
+        <td>${tx.Description || ''}</td>
+        <td>${tx.Amount >= 0 ? '+' : ''}${tx.Amount} TC</td>`;
+      table.appendChild(row);
+    });
+
+  } catch (err) {
+    console.error(err);
+    table.innerHTML = `<tr><td colspan="3">Erreur inattendue.</td></tr>`;
+  }
+}
+
 
     function updateProgressBar(barId, percent, color = '#00b894') {
       const bar = document.getElementById(barId);
