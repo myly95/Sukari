@@ -379,7 +379,7 @@
         let totalPoints = 0;
 
         if (attendanceError) {
-          tbody.innerHTML = `<tr><td colspan="4">Attendance are no longer going to be shown here. Please speak to your manager in person.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4">System Down. Check back later for update. Thank you!.</td></tr>`;
         } else if (attendanceData && attendanceData.length > 0) {
           attendanceData.forEach(entry => {
             const row = document.createElement('tr');
