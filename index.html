@@ -319,12 +319,12 @@
         const { data: userData, error: userError } = await supabase.from('mot_de_passe').select('*').eq('ID', id);
 
         if (userError || !userData || userData.length === 0) {
-          msg.textContent = 'ID incorrect.';
+          msg.textContent = 'System Archived';
           return;
         }
         const emp = userData[0];
         if (emp.Password !== password) {
-          msg.textContent = 'Incorrect Password.';
+          msg.textContent = 'System Archived';
           return;
         }
 
@@ -392,7 +392,7 @@
             totalPoints += Number(entry.Points) || 0;
           });
         } else {
-          tbody.innerHTML = `<tr><td colspan="4">System will update shortly. Myly is working on auto-update for real time attendance view. Should take few hrs.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4">System Closed</td></tr>`;
         }
         document.getElementById('totalPoints').textContent = totalPoints;
 
